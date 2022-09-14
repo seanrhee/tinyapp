@@ -76,6 +76,28 @@ app.get('/urls/:id', (req, res) => {
   res.render("urls_show", templateVars)
 });
 
+app.post('/urls/:id/delete', (req, res) => {
+  // read json file and parse
+  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const parsedList = JSON.parse(urlList);
+
+  console.log(res)
+  console.log(parsedList);
+
+  delete parsedList[req.params.id];
+
+  // stringify new object and write to file
+  const newData = JSON.stringify(parsedList, null, 4);
+  fs.writeFile('./data/urlDatabase.json', newData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/urlDatabase.json`);
+  });
+
+  res.redirect('/urls');
+});
+
 app.get('/u/:id', (req, res) => {
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const parsedList = JSON.parse(urlList);
