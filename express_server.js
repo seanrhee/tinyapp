@@ -47,18 +47,23 @@ app.post('/urls', (req, res) => {
   req.body.id = generateRandomString();
   const {id, longURL} = req.body;
 
+  // read json file and parse
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const parsedList = JSON.parse(urlList);
 
+  // add id + longURL to object
   parsedList[id] = longURL;
 
+  // stringify new object and write to file
   const newData = JSON.stringify(parsedList, null, 4);
   fs.writeFile('./data/urlDatabase.json', newData, err => {
     if (err) throw err;
 
+    // print confirm
     console.log(`{ ${id}: ${longURL} } added to ./data/urlDatabase.json`);
   });
 
+  // redirect to /urls/:id
   res.redirect(`/urls/${id}`);
 });
 
