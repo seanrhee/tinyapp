@@ -22,6 +22,8 @@ const generateRandomString = function() {
 
 app.use(express.urlencoded({ extended: true }));
 
+// GET START
+
 app.get('/', (req, res) => {
   res.send("Hello!");
 });
@@ -43,6 +45,32 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new');
 });
 
+app.get('/urls/:id', (req, res) => {
+  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const parsedList = JSON.parse(urlList);
+  
+  const templateVars = { id: req.params.id, longURL: parsedList[req.params.id]}
+  
+  res.render("urls_show", templateVars)
+});
+
+app.get('/u/:id', (req, res) => {
+  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const parsedList = JSON.parse(urlList);
+
+  const longURL = parsedList[req.params.id];
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    res.send("Invalid Short URL");
+  }
+})
+
+// GET END
+
+// POST START
+
+// POST request when adding URL
 app.post('/urls', (req, res) => {
   req.body.id = generateRandomString();
   const {id, longURL} = req.body;
@@ -67,22 +95,11 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
-app.get('/urls/:id', (req, res) => {
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
-  const parsedList = JSON.parse(urlList);
-  
-  const templateVars = { id: req.params.id, longURL: parsedList[req.params.id]}
-
-  res.render("urls_show", templateVars)
-});
-
+// POST request to delete URL from list
 app.post('/urls/:id/delete', (req, res) => {
   // read json file and parse
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const parsedList = JSON.parse(urlList);
-
-  console.log(res)
-  console.log(parsedList);
 
   delete parsedList[req.params.id];
 
@@ -98,18 +115,27 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-app.get('/u/:id', (req, res) => {
+// POST request to edit longURL
+app.post('/urls/:id/edit', (req, res) => {
+  // read json file and parse
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const parsedList = JSON.parse(urlList);
 
-  const longURL = parsedList[req.params.id];
-  if (longURL) {
-    res.redirect(longURL);
-  } else {
-    res.send("Invalid Short URL");
-  }
-})
+  parsedList[req.params.id] = req.body.longURL;
 
+  // stringify new object and write to file
+  const newData = JSON.stringify(parsedList, null, 4);
+  fs.writeFile('./data/urlDatabase.json', newData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/urlDatabase.json`);
+  });
+
+  res.redirect('/urls');
+});
+
+// POST END
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
