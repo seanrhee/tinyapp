@@ -38,20 +38,30 @@ app.get('/urls', (req, res) => {
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const parsedList = JSON.parse(urlList);
 
-  const templateVars = {urls: parsedList};
+  const templateVars = {
+    urls: parsedList,
+    username: req.cookies["username"]
+  };
 
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = {
+    username: req.cookies["username"]
+  }
+  res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:id', (req, res) => {
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const parsedList = JSON.parse(urlList);
   
-  const templateVars = { id: req.params.id, longURL: parsedList[req.params.id]}
+  const templateVars = {
+    id: req.params.id,
+    longURL: parsedList[req.params.id],
+    username: req.cookies["username"]
+  }
   
   res.render("urls_show", templateVars)
 });
@@ -140,8 +150,12 @@ app.post('/urls/:id/edit', (req, res) => {
 app.post('/login', (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect('/urls');
-  
 });
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
+  res.redirect('/urls');
+})
 
 // POST END
 
