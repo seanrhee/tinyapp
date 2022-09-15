@@ -1,4 +1,5 @@
-const express = require('express')
+const express = require('express');
+const cookieParser = require('cookie-parser');
 
 const fs = require('fs');
 
@@ -7,6 +8,7 @@ const app = express();
 const PORT = 8080;
 
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 
 const generateRandomString = function() {
@@ -133,6 +135,12 @@ app.post('/urls/:id/edit', (req, res) => {
   });
 
   res.redirect('/urls');
+});
+
+app.post('/login', (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect('/urls');
+  
 });
 
 // POST END
