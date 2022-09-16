@@ -78,6 +78,13 @@ app.get('/u/:id', (req, res) => {
   }
 })
 
+app.get('/register', (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"]
+  }
+  res.render('register', templateVars);
+});
+
 // GET END
 
 // POST START
