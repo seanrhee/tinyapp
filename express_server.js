@@ -22,6 +22,12 @@ const generateRandomString = function() {
   return result;
 }
 
+function User(id, email, password) {
+  this.id = id;
+  this.email = email;
+  this.password = password;
+};
+
 app.use(express.urlencoded({ extended: true }));
 
 // GET START
@@ -162,6 +168,28 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
+});
+
+app.post('/register', (req, res) => {
+  const newID = generateRandomString();
+  const newUser = new User(newID, req.body.email, req.body.password);
+  res.cookie("user_id", newID);
+
+  const userList = fs.readFileSync('./data/users.json');
+  const parsedList = JSON.parse(userList);
+
+  parsedList[newID] = newUser;
+
+  // stringify new object and write to file
+  const newData = JSON.stringify(parsedList, null, 4);
+  fs.writeFile('./data/users.json', newData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/users.json`);
+  });
+
+  res.redirect('/urls');  
 })
 
 // POST END
