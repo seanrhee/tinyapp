@@ -28,16 +28,6 @@ function User(id, email, password) {
   this.password = password;
 };
 
-function checkUser(userList, email) {
-  for (const u in userList) {
-    console.log(userList[u].email)
-    if (userList[u].email === email) {
-      return false;
-    }
-  }
-  return true;
-};
-
 function getUserByEmail(email) {
   const userList = fs.readFileSync('./data/users.json');
   const userParsed = JSON.parse(userList);
@@ -209,7 +199,16 @@ app.post('/urls/:id/edit', (req, res) => {
 
 // POST request for User Login
 app.post('/login', (req, res) => {
-  res.cookie("user_id", req.body.username);
+  const user = getUserByEmail(req.body.email)
+  if(!user){
+    res.sendStatus(400);
+  }
+  
+  if(user.password !== req.body.password) {
+    res.sendStatus(400);
+  }
+
+  res.cookie("user_id", user.id);
   res.redirect('/urls');
 });
 
