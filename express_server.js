@@ -234,9 +234,6 @@ app.post('/register', (req, res) => {
   const userList = fs.readFileSync('./data/users.json');
   const userParsed = JSON.parse(userList);
 
-  console.log(req.body.email)
-  console.log(req.body.password);
-
   // if no email or password provided return 400
   if (req.body.email.length === 0 || !req.body.password) {
     console.log("no user")
