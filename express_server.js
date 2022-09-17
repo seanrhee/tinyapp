@@ -205,11 +205,13 @@ app.post('/login', (req, res) => {
   // check if user exists
   if(!user){
     res.sendStatus(403);
+    res.set("Connection", "close");
   }
   
   // check if passwords match
   if(user.password !== req.body.password) {
     res.sendStatus(403);
+    res.set("Connection", "close");
   }
 
   // set user_id cookie to user.id
@@ -232,14 +234,21 @@ app.post('/register', (req, res) => {
   const userList = fs.readFileSync('./data/users.json');
   const userParsed = JSON.parse(userList);
 
+  console.log(req.body.email)
+  console.log(req.body.password);
+
   // if no email or password provided return 400
-  if (!req.body.email || !req.body.password) {
+  if (req.body.email.length === 0 || !req.body.password) {
+    console.log("no user")
     res.sendStatus(400);
+    res.set("Connection", "close");
   }
 
   // if email exists in the database, return 400
   if (getUserByEmail(req.body.email)) {
+    console.log("email found")
     res.sendStatus(400);
+    res.set("Connection", "close");
   } else {
 
     // new User using constructor
