@@ -199,15 +199,20 @@ app.post('/urls/:id/edit', (req, res) => {
 
 // POST request for User Login
 app.post('/login', (req, res) => {
+  // return user by email
   const user = getUserByEmail(req.body.email)
+
+  // check if user exists
   if(!user){
-    res.sendStatus(400);
+    res.sendStatus(403);
   }
   
+  // check if passwords match
   if(user.password !== req.body.password) {
-    res.sendStatus(400);
+    res.sendStatus(403);
   }
 
+  // set user_id cookie to user.id
   res.cookie("user_id", user.id);
   res.redirect('/urls');
 });
@@ -220,23 +225,27 @@ app.post('/logout', (req, res) => {
 
 // POST request to register new user
 app.post('/register', (req, res) => {
+  // generate random ID
   const newID = generateRandomString();
+
+  // read users.json and parse
   const userList = fs.readFileSync('./data/users.json');
   const userParsed = JSON.parse(userList);
 
+  // if no email or password provided return 400
   if (!req.body.email || !req.body.password) {
     res.sendStatus(400);
   }
 
+  // if email exists in the database, return 400
   if (getUserByEmail(req.body.email)) {
     res.sendStatus(400);
   } else {
 
-    const newUser = new User(newID, req.body.email, req.body.password);
-    res.cookie("user_id", newID);
+    // new User using constructor
+    const newUser = new User(newID, req.body.email, req.body.password);  
   
-    
-  
+    // add new user with newID as key to userParsed
     userParsed[newID] = newUser;
   
     // stringify new object and write to file
@@ -248,6 +257,9 @@ app.post('/register', (req, res) => {
       console.log(`Updated ./data/users.json`);
     });
   
+    // set cookie to newID
+    res.cookie("user_id", newID);
+
     res.redirect('/urls');  
   }
 
