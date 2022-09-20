@@ -123,6 +123,15 @@ app.get('/urls/:id', (req, res) => {
     user: userParsed[req.cookies["user_id"]]
   }
   
+  if (!req.cookies["user_id"]) {
+    res.send('You must log in. Click <a href="/login">here</a> to login.')
+    return;
+  }
+  if (urlParsed[req.params.id].userID !== req.cookies["user_id"]) {
+    res.send("You do not own this short URL. Click <a href='/urls'>here</a> to return.");
+    return;
+  }
+
   res.render("urls_show", templateVars)
 });
 
@@ -216,6 +225,16 @@ app.post('/urls/:id/delete', (req, res) => {
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const urlParsed = JSON.parse(urlList);
 
+  // check for permission
+  if (!req.cookies["user_id"]) {
+    res.send('You must log in.')
+    return;
+  }
+  if (urlParsed[req.params.id].userID !== req.cookies["user_id"]) {
+    res.send("Access Denied.");
+    return;
+  }
+
   delete urlParsed[req.params.id];
 
   // stringify new object and write to file
@@ -236,6 +255,16 @@ app.post('/urls/:id/edit', (req, res) => {
   // read json file and parse
   const urlList = fs.readFileSync('./data/urlDatabase.json');
   const urlParsed = JSON.parse(urlList);
+
+  // check for permission
+  if (!req.cookies["user_id"]) {
+    res.send('You must log in.')
+    return;
+  }
+  if (urlParsed[req.params.id].userID !== req.cookies["user_id"]) {
+    res.send("Access Denied.");
+    return;
+  }
 
   urlParsed[req.params.id].longURL = req.body.longURL;
 
