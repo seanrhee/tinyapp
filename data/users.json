@@ -13,5 +13,10 @@
         "id": "fXuTwA",
         "email": "a@a.com",
         "password": "$2a$10$ZHU844YS9vGUKwFl7ITalOlICQDVvQmhddGqse55NJ6BJbhw453xq"
+    },
+    "0EwIF4": {
+        "id": "0EwIF4",
+        "email": "b@b.com",
+        "password": "$2a$10$uubN7luztGFnVynyEy4pWOmbesdSrXlnEiK4/fr5oB2h5.xmV9t5C"
     }
 }
