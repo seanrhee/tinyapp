@@ -188,7 +188,7 @@ app.get('/login', (req, res) => {
   res.render('login', templateVars);
 });
 
-// GET ENDnewID
+// GET END
 
 // POST request when adding URL
 app.post('/urls', (req, res) => {
@@ -306,7 +306,6 @@ app.post('/login', (req, res) => {
 
   // set user_id cookie to user.id
   req.session.user_id = user.id;
-  // res.cookie("user_id", user.id);
   res.redirect('/urls');
   return;
 });
@@ -358,7 +357,6 @@ app.post('/register', (req, res) => {
   
     // set cookie to newID
     req.session.user_id = newID;
-    // res.cookie("user_id", newID);
 
     res.redirect('/urls');
     return;
