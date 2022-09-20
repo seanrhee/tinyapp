@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 
 const fs = require('fs');
 
@@ -286,6 +287,8 @@ app.post('/login', (req, res) => {
   // return user by email
   const user = getUserByEmail(req.body.email)
 
+  console.log(user);
+
   // check if user exists
   if(!user){
     res.sendStatus(403);
@@ -293,7 +296,7 @@ app.post('/login', (req, res) => {
   }
   
   // check if passwords match
-  if(user.password !== req.body.password) {
+  if(!bcrypt.compareSync(req.body.password, user.password)) {
     res.sendStatus(403);
     return;
   }
@@ -334,8 +337,8 @@ app.post('/register', (req, res) => {
     return;
   } else {
 
-    // new User using constructor
-    const newUser = new User(newID, req.body.email, req.body.password);  
+    // new User using constructor (password is hashed using bcrypt)
+    const newUser = new User(newID, req.body.email, bcrypt.hashSync(req.body.password, 10));
   
     // add new user with newID as key to userParsed
     userParsed[newID] = newUser;
