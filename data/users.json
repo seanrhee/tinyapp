@@ -9,59 +9,9 @@
         "email": "user2@example.com",
         "password": "dishwasher-funk"
     },
-    "TgpPh": {
-        "id": "TgpPh",
+    "fXuTwA": {
+        "id": "fXuTwA",
         "email": "a@a.com",
-        "password": "123"
-    },
-    "DKwoU": {
-        "id": "DKwoU",
-        "email": "b@b.com",
-        "password": "123"
-    },
-    "TCIkc": {
-        "id": "TCIkc",
-        "email": "c@c.com",
-        "password": "123"
-    },
-    "6f6e6": {
-        "id": "6f6e6",
-        "email": "d@d.com",
-        "password": "123"
-    },
-    "kqdE6": {
-        "id": "kqdE6",
-        "email": "e@e.com",
-        "password": "123"
-    },
-    "Y8i0Q": {
-        "id": "Y8i0Q",
-        "email": "f@f.com",
-        "password": "123"
-    },
-    "n3mRm": {
-        "id": "n3mRm",
-        "email": "g@g.com",
-        "password": "123"
-    },
-    "yM4i9": {
-        "id": "yM4i9",
-        "email": "h@h.com",
-        "password": "123"
-    },
-    "yj670": {
-        "id": "yj670",
-        "email": "123@123.com",
-        "password": "123"
-    },
-    "LY359": {
-        "id": "LY359",
-        "email": "3428957@sdkljf.com",
-        "password": "123"
-    },
-    "3WnhI": {
-        "id": "3WnhI",
-        "email": "asdifhkjsahdf@gmail.com",
-        "password": "1987123"
+        "password": "$2a$10$ZHU844YS9vGUKwFl7ITalOlICQDVvQmhddGqse55NJ6BJbhw453xq"
     }
 }
