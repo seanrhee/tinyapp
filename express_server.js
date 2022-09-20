@@ -11,7 +11,7 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 app.use(cookieSession({
   name: 'session',
-  keys: ["z%C*F-Ja"]
+  keys: [")J@NcRfUjWnZr4u7"]
 }));
 
 
