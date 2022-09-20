@@ -1,8 +1,9 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-
 const fs = require('fs');
+
+const users = './data/users.json';
 
 
 const app = express();
@@ -40,8 +41,8 @@ function newURL(longURL, userID) {
 };
 
 // return user by email
-function getUserByEmail(email) {
-  const userList = fs.readFileSync('./data/users.json');
+function getUserByEmail(email, database) {
+  const userList = fs.readFileSync(database);
   const userParsed = JSON.parse(userList);
 
   for (const user in userParsed) {
@@ -285,13 +286,21 @@ app.post('/urls/:id/edit', (req, res) => {
 // POST request for User Login
 app.post('/login', (req, res) => {
   // return user by email
-  const user = getUserByEmail(req.body.email)
+  const user = getUserByEmail(req.body.email, users)
 
-  // check if user existsnewID
-  
+  if (!req.body.email && !req.body.password) {
+    res.status(400).send("No email or password provided.");
+    return;
+  }
+  // check if user exists
+  if (!user){
+    res.status(403).send("No email provided.");
+    return;
+  }
+
   // check if passwords match
   if (!bcrypt.compareSync(req.body.password, user.password)) {
-    res.sendStatus(403).send("Wrong password.");
+    res.status(403).send("Wrong password.");
     return;
   }
 
@@ -321,14 +330,14 @@ app.post('/register', (req, res) => {
   // if no email or password provided return 400
   if (req.body.email.length === 0 || !req.body.password) {
     console.log("no user")
-    res.sendStatus(400);
+    res.status(400).send("No email or password provided");
     return;
   }
 
   // if email exists in the database, return 400
-  if (getUserByEmail(req.body.email)) {
+  if (getUserByEmail(req.body.email, users)) {
     console.log("email found")
-    res.sendStatus(400);
+    res.status(400).send("Email already exists.");
     return;
   } else {
 
