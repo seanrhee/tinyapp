@@ -1,6 +1,18 @@
 {
-    "b2xVn2": "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com",
-    "pcu5L": "http://www.youtube.com",
-    "Biqf1": "http://www.twitch.tv"
+    "9tuJsT": {
+        "longURL": "http://www.example.com",
+        "userID": "TgpPh"
+    },
+    "ex7rCt": {
+        "longURL": "http://www.lighthouselabs.ca",
+        "userID": "TgpPh"
+    },
+    "OnvQiF": {
+        "longURL": "http://www.youtube.com",
+        "userID": "DKwoU"
+    },
+    "ZRokXy": {
+        "longURL": "http://www.twitch.tv",
+        "userID": "LY359"
+    }
 }

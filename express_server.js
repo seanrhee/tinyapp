@@ -15,19 +15,27 @@ const generateRandomString = function() {
   let result = '';
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   
   return result;
 }
 
+// constructor function for new User
 function User(id, email, password) {
   this.id = id;
   this.email = email;
   this.password = password;
 };
 
+// constructor function for new URL
+function newURL(longURL, userID) {
+  this.longURL = longURL;
+  this.userID = userID;
+};
+
+// return user by email
 function getUserByEmail(email) {
   const userList = fs.readFileSync('./data/users.json');
   const userParsed = JSON.parse(userList);
@@ -38,6 +46,23 @@ function getUserByEmail(email) {
     }
   }
   return null;
+}
+
+// return object of matching userID urls
+function urlsForUser(id) {
+  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const urlParsed = JSON.parse(urlList);
+
+  let userURLs = {};
+
+  for (const url in urlParsed) {
+    if (urlParsed[url].userID === id) {
+      userURLs[url] = urlParsed[url];
+    }
+  }
+
+  console.log(userURLs);
+  return userURLs;
 }
 
 app.use(express.urlencoded({ extended: true }));
@@ -54,13 +79,14 @@ app.get('/hello', (req, res) => {
 
 // GET request for URL index
 app.get('/urls', (req, res) => {
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
-  const parsedList = JSON.parse(urlList);
   const userList = fs.readFileSync('./data/users.json');
   const userParsed = JSON.parse(userList);
 
+  // return all URLs matching userID to cookie id
+  const userURL = urlsForUser(req.cookies["user_id"]);
+
   const templateVars = {
-    urls: parsedList,
+    urls: userURL,
     user: userParsed[req.cookies["user_id"]]
   };
 
@@ -87,13 +113,13 @@ app.get('/urls/new', (req, res) => {
 // GET request for ID/edit page
 app.get('/urls/:id', (req, res) => {
   const urlList = fs.readFileSync('./data/urlDatabase.json');
-  const parsedList = JSON.parse(urlList);
+  const urlParsed = JSON.parse(urlList);
   const userList = fs.readFileSync('./data/users.json');
   const userParsed = JSON.parse(userList);
   
   const templateVars = {
     id: req.params.id,
-    longURL: parsedList[req.params.id],
+    longURL: urlParsed[req.params.id].longURL,
     user: userParsed[req.cookies["user_id"]]
   }
   
@@ -103,9 +129,9 @@ app.get('/urls/:id', (req, res) => {
 // GET request for redirect to longURL
 app.get('/u/:id', (req, res) => {
   const urlList = fs.readFileSync('./data/urlDatabase.json');
-  const parsedList = JSON.parse(urlList);
+  const urlParsed = JSON.parse(urlList);
 
-  const longURL = parsedList[req.params.id];
+  const longURL = urlParsed[req.params.id].longURL;
   if (longURL) {
     res.redirect(longURL);
     return;
@@ -164,18 +190,19 @@ app.post('/urls', (req, res) => {
 
   // read json file and parse
   const urlList = fs.readFileSync('./data/urlDatabase.json');
-  const parsedList = JSON.parse(urlList);
+  const urlParsed = JSON.parse(urlList);
 
   // add id + longURL to object
-  parsedList[id] = longURL;
+  const addURL = new newURL(longURL, req.cookies["user_id"])
+  urlParsed[id] = addURL;
 
   // stringify new object and write to file
-  const newData = JSON.stringify(parsedList, null, 4);
+  const newData = JSON.stringify(urlParsed, null, 4);
   fs.writeFile('./data/urlDatabase.json', newData, err => {
     if (err) throw err;
 
     // print confirm
-    console.log(`{ ${id}: ${longURL} } added to ./data/urlDatabase.json`);
+    console.log(`{ ${id}: ${longURL} for user ${req.cookies["user_id"]} } added to ./data/urlDatabase.json`);
   });
 
   // redirect to /urls/:id
@@ -187,12 +214,12 @@ app.post('/urls', (req, res) => {
 app.post('/urls/:id/delete', (req, res) => {
   // read json file and parse
   const urlList = fs.readFileSync('./data/urlDatabase.json');
-  const parsedList = JSON.parse(urlList);
+  const urlParsed = JSON.parse(urlList);
 
-  delete parsedList[req.params.id];
+  delete urlParsed[req.params.id];
 
   // stringify new object and write to file
-  const newData = JSON.stringify(parsedList, null, 4);
+  const newData = JSON.stringify(urlParsed, null, 4);
   fs.writeFile('./data/urlDatabase.json', newData, err => {
     if (err) throw err;
 
@@ -208,12 +235,12 @@ app.post('/urls/:id/delete', (req, res) => {
 app.post('/urls/:id/edit', (req, res) => {
   // read json file and parse
   const urlList = fs.readFileSync('./data/urlDatabase.json');
-  const parsedList = JSON.parse(urlList);
+  const urlParsed = JSON.parse(urlList);
 
-  parsedList[req.params.id] = req.body.longURL;
+  urlParsed[req.params.id].longURL = req.body.longURL;
 
   // stringify new object and write to file
-  const newData = JSON.stringify(parsedList, null, 4);
+  const newData = JSON.stringify(urlParsed, null, 4);
   fs.writeFile('./data/urlDatabase.json', newData, err => {
     if (err) throw err;
 

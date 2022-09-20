@@ -18,6 +18,12 @@
   </head>
   <%- include('partials/_header') %>
   <body>
+    <% if (!user) { %>
+      <div class="alert">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span> 
+        <strong>Error!</strong> You must log in. Click <a href="/login">here</a> to login.
+      </div>
+    <% } %>
     <main style="margin: 1em;">
       <h3>My URLs</h3>
       <table class="table">
@@ -33,7 +39,7 @@
           <% for (let id in urls) { %>
             <tr>
               <td><%= id %></td>
-              <td><%= urls[id] %></td>
+              <td><%= urls[id].longURL %></td>
               <td><form method="GET" action="/urls/<%= id %>"><button class="btn btn-warning">Edit</button></form></td>
               <td><form method="POST" action="/urls/<%= id %>/delete"><button class="btn btn-danger">Delete</button></form></td>
             </tr>
