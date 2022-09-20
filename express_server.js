@@ -62,7 +62,6 @@ function urlsForUser(id) {
     }
   }
 
-  console.log(userURLs);
   return userURLs;
 }
 
@@ -287,17 +286,20 @@ app.post('/login', (req, res) => {
   // return user by email
   const user = getUserByEmail(req.body.email)
 
-  console.log(user);
-
   // check if user exists
-  if(!user){
-    res.sendStatus(403);
+  if (!user){
+    res.sendStatus(403).send("No email provided.");
+    return;
+  }
+
+  if (!req.body.email && !req.body.password) {
+    res.sendStatus(400).send("No email or password provided.");
     return;
   }
   
   // check if passwords match
-  if(!bcrypt.compareSync(req.body.password, user.password)) {
-    res.sendStatus(403);
+  if (!bcrypt.compareSync(req.body.password, user.password)) {
+    res.sendStatus(403).send("Wrong password.");
     return;
   }
 
