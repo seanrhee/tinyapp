@@ -74,6 +74,13 @@ app.get('/urls/new', (req, res) => {
   const templateVars = {
     user: userParsed[req.cookies["user_id"]]
   }
+
+  // if cookie is null redirect to /login
+  if (!req.cookies["user_id"]) {
+    res.redirect('/login');
+    return;
+  }
+
   res.render('urls_new', templateVars);
 });
 
@@ -101,6 +108,7 @@ app.get('/u/:id', (req, res) => {
   const longURL = parsedList[req.params.id];
   if (longURL) {
     res.redirect(longURL);
+    return;
   } else {
     res.send("Invalid Short URL");
   }
@@ -114,6 +122,13 @@ app.get('/register', (req, res) => {
   const templateVars = {
     user: userParsed[req.cookies["user_id"]]
   }
+
+  // if cookie is not null redirect to /urls
+  if (req.cookies["user_id"]) {
+    res.redirect('/urls');
+    return;
+  }
+
   res.render('register', templateVars);
 });
 
@@ -123,8 +138,14 @@ app.get('/login', (req, res) => {
   const userParsed = JSON.parse(userList);
 
   const templateVars = {
-    user: userParsed[req.cookies["user_id"]]
+    user: userParsed[req.cookies["user_id"]],
   }
+  // if cookie is not null redirect to /urls
+  if (req.cookies["user_id"]) {
+    res.redirect('/urls');
+    return;
+  }
+
   res.render('login', templateVars);
 });
 
@@ -134,6 +155,10 @@ app.get('/login', (req, res) => {
 
 // POST request when adding URL
 app.post('/urls', (req, res) => {
+  if (!req.cookies["user_id"]) {
+    res.send("You are unable to shorten URLs. You must log in.\n");
+    return;
+  }
   req.body.id = generateRandomString();
   const {id, longURL} = req.body;
 
@@ -155,6 +180,7 @@ app.post('/urls', (req, res) => {
 
   // redirect to /urls/:id
   res.redirect(`/urls/${id}`);
+  return;
 });
 
 // POST request to delete URL from list
@@ -175,6 +201,7 @@ app.post('/urls/:id/delete', (req, res) => {
   });
 
   res.redirect('/urls');
+  return;
 });
 
 // POST request to edit longURL
@@ -195,6 +222,7 @@ app.post('/urls/:id/edit', (req, res) => {
   });
 
   res.redirect('/urls');
+  return;
 });
 
 // POST request for User Login
@@ -205,24 +233,26 @@ app.post('/login', (req, res) => {
   // check if user exists
   if(!user){
     res.sendStatus(403);
-    res.set("Connection", "close");
+    return;
   }
   
   // check if passwords match
   if(user.password !== req.body.password) {
     res.sendStatus(403);
-    res.set("Connection", "close");
+    return;
   }
 
   // set user_id cookie to user.id
   res.cookie("user_id", user.id);
   res.redirect('/urls');
+  return;
 });
 
 // POST request to clearCookie and User Logout
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
+  return;
 });
 
 // POST request to register new user
@@ -238,14 +268,14 @@ app.post('/register', (req, res) => {
   if (req.body.email.length === 0 || !req.body.password) {
     console.log("no user")
     res.sendStatus(400);
-    res.set("Connection", "close");
+    return;
   }
 
   // if email exists in the database, return 400
   if (getUserByEmail(req.body.email)) {
     console.log("email found")
     res.sendStatus(400);
-    res.set("Connection", "close");
+    return;
   } else {
 
     // new User using constructor
@@ -266,7 +296,8 @@ app.post('/register', (req, res) => {
     // set cookie to newID
     res.cookie("user_id", newID);
 
-    res.redirect('/urls');  
+    res.redirect('/urls');
+    return;
   }
 
 })
@@ -276,5 +307,3 @@ app.post('/register', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
-
-// This is my new branch!
