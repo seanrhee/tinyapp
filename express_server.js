@@ -3,7 +3,8 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
-const users = './data/users.json';
+const usersDatabase = './data/users.json';
+const urlsDatabase = './data/urlDatabase.json';
 
 
 const app = express();
@@ -54,8 +55,8 @@ function getUserByEmail(email, database) {
 }
 
 // return object of matching userID urls
-function urlsForUser(id) {
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
+function urlsForUser(id, database) {
+  const urlList = fs.readFileSync(database);
   const urlParsed = JSON.parse(urlList);
 
   let userURLs = {};
@@ -83,11 +84,11 @@ app.get('/hello', (req, res) => {
 
 // GET request for URL index
 app.get('/urls', (req, res) => {
-  const userList = fs.readFileSync('./data/users.json');
+  const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
   // return all URLs matching userID to cookie id
-  const userURL = urlsForUser(req.session.user_id);
+  const userURL = urlsForUser(req.session.user_id, urlsDatabase);
 
   const templateVars = {
     urls: userURL,
@@ -99,7 +100,7 @@ app.get('/urls', (req, res) => {
 
 // GET request for New URL
 app.get('/urls/new', (req, res) => {
-  const userList = fs.readFileSync('./data/users.json');
+  const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
   const templateVars = {
     user: userParsed[req.session.user_id]
@@ -116,9 +117,9 @@ app.get('/urls/new', (req, res) => {
 
 // GET request for ID/edit page
 app.get('/urls/:id', (req, res) => {
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const urlList = fs.readFileSync(urlsDatabase);
   const urlParsed = JSON.parse(urlList);
-  const userList = fs.readFileSync('./data/users.json');
+  const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
   
   const templateVars = {
@@ -141,7 +142,7 @@ app.get('/urls/:id', (req, res) => {
 
 // GET request for redirect to longURL
 app.get('/u/:id', (req, res) => {
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const urlList = fs.readFileSync(urlsDatabase);
   const urlParsed = JSON.parse(urlList);
 
   const longURL = urlParsed[req.params.id].longURL;
@@ -155,7 +156,7 @@ app.get('/u/:id', (req, res) => {
 
 // GET request for Register
 app.get('/register', (req, res) => {
-  const userList = fs.readFileSync('./data/users.json');
+  const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
   const templateVars = {
@@ -173,7 +174,7 @@ app.get('/register', (req, res) => {
 
 // GET request for Login
 app.get('/login', (req, res) => {
-  const userList = fs.readFileSync('./data/users.json');
+  const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
   const templateVars = {
@@ -200,7 +201,7 @@ app.post('/urls', (req, res) => {
   const {id, longURL} = req.body;
 
   // read json file and parse
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const urlList = fs.readFileSync(urlsDatabase);
   const urlParsed = JSON.parse(urlList);
 
   // add id + longURL to object
@@ -224,7 +225,7 @@ app.post('/urls', (req, res) => {
 // POST request to delete URL from list
 app.post('/urls/:id/delete', (req, res) => {
   // read json file and parse
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const urlList = fs.readFileSync(urlsDatabase);
   const urlParsed = JSON.parse(urlList);
 
   // check for permission
@@ -255,7 +256,7 @@ app.post('/urls/:id/delete', (req, res) => {
 // POST request to edit longURL
 app.post('/urls/:id/edit', (req, res) => {
   // read json file and parse
-  const urlList = fs.readFileSync('./data/urlDatabase.json');
+  const urlList = fs.readFileSync(urlsDatabase);
   const urlParsed = JSON.parse(urlList);
 
   // check for permission
@@ -286,7 +287,7 @@ app.post('/urls/:id/edit', (req, res) => {
 // POST request for User Login
 app.post('/login', (req, res) => {
   // return user by email
-  const user = getUserByEmail(req.body.email, users)
+  const user = getUserByEmail(req.body.email, usersDatabase)
 
   if (!req.body.email && !req.body.password) {
     res.status(400).send("No email or password provided.");
@@ -323,7 +324,7 @@ app.post('/register', (req, res) => {
   const newID = generateRandomString();
 
   // read users.json and parse
-  const userList = fs.readFileSync('./data/users.json');
+  const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
   // if no email or password provided return 400
@@ -334,7 +335,7 @@ app.post('/register', (req, res) => {
   }
 
   // if email exists in the database, return 400
-  if (getUserByEmail(req.body.email, users)) {
+  if (getUserByEmail(req.body.email, usersDatabase)) {
     console.log("email found")
     res.status(400).send("Email already exists.");
     return;
