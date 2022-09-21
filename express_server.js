@@ -6,6 +6,8 @@ const fs = require('fs');
 const usersDatabase = './data/users.json';
 const urlsDatabase = './data/urlDatabase.json';
 
+const { getUserByEmail, urlsForUser } = require('./helpers');
+
 
 const app = express();
 const PORT = 8080;
@@ -40,35 +42,6 @@ function newURL(longURL, userID) {
   this.longURL = longURL;
   this.userID = userID;
 };
-
-// return user by email
-function getUserByEmail(email, database) {
-  const userList = fs.readFileSync(database);
-  const userParsed = JSON.parse(userList);
-
-  for (const user in userParsed) {
-    if (userParsed[user].email === email) {
-      return userParsed[user];
-    }
-  }
-  return null;
-}
-
-// return object of matching userID urls
-function urlsForUser(id, database) {
-  const urlList = fs.readFileSync(database);
-  const urlParsed = JSON.parse(urlList);
-
-  let userURLs = {};
-
-  for (const url in urlParsed) {
-    if (urlParsed[url].userID === id) {
-      userURLs[url] = urlParsed[url];
-    }
-  }
-
-  return userURLs;
-}
 
 app.use(express.urlencoded({ extended: true }));
 
