@@ -18,5 +18,12 @@
         "id": "0lbc2b",
         "email": "b@b.com",
         "password": "$2a$10$LrsNHsbOU0uHodvRqonqVuZLJqzW7dQUwgvyeYDjn15V1YHH9fCeK"
+    },
+    "bz8SEn": {
+        "id": "bz8SEn",
+        "email": "c@c.com",
+        "password": "$2a$10$AQ3iN9RM7FUNRc8wa7VfjOx/NYndrLb3xMGPVYr3fsPVLOBPLzyDO",
+        "secQuestion": "car",
+        "secAnswer": "$2a$10$cRpyoXLvcd619NEoPo7QXOr3kuti0Ci5CHXK/6EKnCxh0.cGzAvba"
     }
 }

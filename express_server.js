@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
+const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
@@ -17,7 +18,8 @@ app.use(cookieSession({
   name: 'session',
   keys: [")J@NcRfUjWnZr4u7"]
 }));
-app.use(methodOverride('X-HTTP-Method-Override'));
+app.use(methodOverride('_method'));
+app.use(cookieParser());
 
 const generateRandomString = function() {
   let result = '';
@@ -31,10 +33,12 @@ const generateRandomString = function() {
 }
 
 // constructor function for new User
-function User(id, email, password) {
+function User(id, email, password, secQuestion, secAnswer) {
   this.id = id;
   this.email = email;
   this.password = password;
+  this.secQuestion = secQuestion;
+  this.secAnswer = secAnswer;
 };
 
 // constructor function for new URL
@@ -45,7 +49,7 @@ function newURL(longURL, userID) {
 
 app.use(express.urlencoded({ extended: true }));
 
-// GET START
+//--- GET START ---//
 
 app.get('/', (req, res) => {
   res.send("Hello!");
@@ -162,7 +166,23 @@ app.get('/login', (req, res) => {
   res.render('login', templateVars);
 });
 
-// GET END
+app.get('/recovery', (req, res) => {
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  const templateVars = {
+    user: userParsed[req.session.user_id],
+  }
+  res.render('recovery', templateVars)
+})
+
+app.get('/newpassword', (req, res) => {
+  
+})
+
+//--- GET END ---//
+
+//--- POST START ---//
 
 // POST request when adding URL
 app.post('/urls', (req, res) => {
@@ -192,68 +212,6 @@ app.post('/urls', (req, res) => {
 
   // redirect to /urls/:id
   res.redirect(`/urls/${id}`);
-  return;
-});
-
-// POST request to delete URL from list
-app.post('/urls/:id/delete', (req, res) => {
-  // read json file and parse
-  const urlList = fs.readFileSync(urlsDatabase);
-  const urlParsed = JSON.parse(urlList);
-
-  // check for permission
-  if (!req.session.user_id) {
-    res.send('You must log in.')
-    return;
-  }
-  if (urlParsed[req.params.id].userID !== req.session.user_id) {
-    res.send("Access Denied.");
-    return;
-  }
-
-  delete urlParsed[req.params.id];
-
-  // stringify new object and write to file
-  const newData = JSON.stringify(urlParsed, null, 4);
-  fs.writeFile('./data/urlDatabase.json', newData, err => {
-    if (err) throw err;
-
-    // print confirm
-    console.log(`Updated ./data/urlDatabase.json`);
-  });
-
-  res.redirect('/urls');
-  return;
-});
-
-// POST request to edit longURL
-app.post('/urls/:id/edit', (req, res) => {
-  // read json file and parse
-  const urlList = fs.readFileSync(urlsDatabase);
-  const urlParsed = JSON.parse(urlList);
-
-  // check for permission
-  if (!req.session.user_id) {
-    res.send('You must log in.')
-    return;
-  }
-  if (urlParsed[req.params.id].userID !== req.session.user_id) {
-    res.send("Access Denied.");
-    return;
-  }
-
-  urlParsed[req.params.id].longURL = req.body.longURL;
-
-  // stringify new object and write to file
-  const newData = JSON.stringify(urlParsed, null, 4);
-  fs.writeFile('./data/urlDatabase.json', newData, err => {
-    if (err) throw err;
-
-    // print confirm
-    console.log(`Updated ./data/urlDatabase.json`);
-  });
-
-  res.redirect('/urls');
   return;
 });
 
@@ -313,9 +271,10 @@ app.post('/register', (req, res) => {
     res.status(400).send("Email already exists.");
     return;
   } else {
-
     // new User using constructor (password is hashed using bcrypt)
-    const newUser = new User(newID, req.body.email, bcrypt.hashSync(req.body.password, 10));
+    const newUser = new User(newID, req.body.email, bcrypt.hashSync(req.body.password, 10), req.body.secQuestion, bcrypt.hashSync(req.body.secAnswer, 10));
+
+    console.log(newUser);
   
     // add new user with newID as key to userParsed
     userParsed[newID] = newUser;
@@ -335,10 +294,95 @@ app.post('/register', (req, res) => {
     res.redirect('/urls');
     return;
   }
+});
 
-})
+app.post('/recovery', (req, res) => {
+  const user = getUserByEmail(req.body.email, usersDatabase);
 
-// POST END
+  if (!user) {
+    res.status(400).send("Account not found.");
+    return;
+  }
+
+  if (user.secQuestion !== req.body.secQuestion) {
+    res.status(400).send("Security Question does not match.");
+    return;
+  }
+
+  if (!bcrypt.compareSync(req.body.secAnswer, user.secAnswer)) {
+    res.status(400).send("Wrong security answer provided.");
+    return;
+  }
+
+  req.session.user_id = user.id;
+  res.cookie('newPassword', true);
+  res.redirect('/newpassword');
+});
+
+//--- POST END ---//
+
+// DELETE request to delete URL from list
+app.delete('/urls/:id', (req, res) => {
+  // read json file and parse
+  const urlList = fs.readFileSync(urlsDatabase);
+  const urlParsed = JSON.parse(urlList);
+
+  // check for permission
+  if (!req.session.user_id) {
+    res.send('You must log in.')
+    return;
+  }
+  if (urlParsed[req.params.id].userID !== req.session.user_id) {
+    res.send("Access Denied.");
+    return;
+  }
+
+  delete urlParsed[req.params.id];
+
+  // stringify new object and write to file
+  const newData = JSON.stringify(urlParsed, null, 4);
+  fs.writeFile('./data/urlDatabase.json', newData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/urlDatabase.json`);
+  });
+
+  res.redirect('/urls');
+  return;
+});
+
+// PUT request to edit longURL
+app.put('/urls/:id', (req, res) => {
+  // read json file and parse
+  const urlList = fs.readFileSync(urlsDatabase);
+  const urlParsed = JSON.parse(urlList);
+
+  // check for permission
+  if (!req.session.user_id) {
+    res.send('You must log in.')
+    return;
+  }
+  if (urlParsed[req.params.id].userID !== req.session.user_id) {
+    res.send("Access Denied.");
+    return;
+  }
+
+  urlParsed[req.params.id].longURL = req.body.longURL;
+
+  // stringify new object and write to file
+  const newData = JSON.stringify(urlParsed, null, 4);
+  fs.writeFile('./data/urlDatabase.json', newData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/urlDatabase.json`);
+  });
+
+  res.redirect('/urls');
+  return;
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
