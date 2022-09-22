@@ -61,10 +61,6 @@ app.get('/hello', (req, res) => {
 
 // GET request for URL index
 app.get('/urls', (req, res) => {
-  if (req.cookies["newPassword"]) {
-    res.redirect('/newpassword');
-    return;
-  }
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
@@ -81,10 +77,6 @@ app.get('/urls', (req, res) => {
 
 // GET request for New URL
 app.get('/urls/new', (req, res) => {
-  if (req.cookies["newPassword"]) {
-    res.redirect('/newpassword');
-    return;
-  }
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
   const templateVars = {
@@ -102,10 +94,6 @@ app.get('/urls/new', (req, res) => {
 
 // GET request for ID/edit page
 app.get('/urls/:id', (req, res) => {
-  if (req.cookies["newPassword"]) {
-    res.redirect('/newpassword');
-    return;
-  }
   const urlList = fs.readFileSync(urlsDatabase);
   const urlParsed = JSON.parse(urlList);
   const userList = fs.readFileSync(usersDatabase);
@@ -193,8 +181,6 @@ app.get('/newpassword', (req, res) => {
     res.status(400).send("You are not logged in.");
   }
 
-  res.cookie('newPassword', true);
-
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
@@ -222,11 +208,8 @@ app.get('/newemail', (req, res) => {
   res.render('newemail', templateVars);
 })
 
+// GET request for user dashboard
 app.get('/dashboard', (req, res) => {
-  if (req.cookies["newPassword"]) {
-    res.redirect('/newpassword');
-    return;
-  }
   if (!req.session.user_id) {
     res.status(400).send("You are not logged in.");
   }
@@ -237,6 +220,19 @@ app.get('/dashboard', (req, res) => {
     user: userParsed[req.session.user_id],
   }
   res.render('dashboard', templateVars);
+})
+
+app.get('/deleteaccount', (req, res) => {
+  if (!req.session.user_id) {
+    res.status(400).send("You are not logged in.");
+  }
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  const templateVars = {
+    user: userParsed[req.session.user_id],
+  }
+  res.render('deleteaccount', templateVars);
 })
 
 //--- GET END ---//
@@ -355,6 +351,7 @@ app.post('/register', (req, res) => {
   }
 });
 
+// POST request to access password recovery
 app.post('/recovery', (req, res) => {
   const user = getUserByEmail(req.body.email, usersDatabase);
 
@@ -410,6 +407,56 @@ app.delete('/urls/:id', (req, res) => {
   return;
 });
 
+// DELETE request to delete account
+app.delete('/deleteaccount', (req, res) => {
+  if (!req.session.user_id) {
+    res.send('You must log in.')
+    return;
+  }
+
+  // read json file and parse
+  const urlList = fs.readFileSync(urlsDatabase);
+  const urlParsed = JSON.parse(urlList);
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  console.log(userParsed[req.session.user_id]);
+
+  // DELETE URLS from urlDatabase.json
+  for (const url in urlParsed) {
+    console.log(urlParsed[url]);
+    if (urlParsed[url].userID === userParsed[req.session.user_id].id) {
+      delete urlParsed[url];
+    }
+  }
+
+  // stringify new object and write to file
+  const urlData = JSON.stringify(urlParsed, null, 4);
+  fs.writeFile('./data/urlDatabase.json', urlData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/urlDatabase.json`);
+  });
+
+  // DELETE USER from users.json
+
+  delete userParsed[req.session.user_id];
+
+  // stringify new object and write to file
+  const userData = JSON.stringify(userParsed, null, 4);
+  fs.writeFile('./data/users.json', userData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/users.json`);
+  });
+    
+  req.session = null;
+  res.redirect('/urls');
+  return;
+})
+
 // PUT request to edit longURL
 app.put('/urls/:id', (req, res) => {
     // read json file and parse
@@ -441,7 +488,9 @@ app.put('/urls/:id', (req, res) => {
   return;
 });
 
+// PUT request to edit account password
 app.put('/newpassword', (req, res) => {
+  // check for permission
   if (!req.session.user_id) {
     res.status(403).send("You are not logged in.");
   }
@@ -460,11 +509,11 @@ app.put('/newpassword', (req, res) => {
     console.log(`Updated ./data/users.json`);
   });
 
-  res.clearCookie('newPassword');
   res.redirect('/urls');
   return;
 })
 
+// PUT request to edit account email
 app.put('/newemail', (req, res) => {  
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
