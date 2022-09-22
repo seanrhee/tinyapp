@@ -61,6 +61,10 @@ app.get('/hello', (req, res) => {
 
 // GET request for URL index
 app.get('/urls', (req, res) => {
+  if (req.cookies["newPassword"]) {
+    res.redirect('/newpassword');
+    return;
+  }
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
@@ -77,6 +81,10 @@ app.get('/urls', (req, res) => {
 
 // GET request for New URL
 app.get('/urls/new', (req, res) => {
+  if (req.cookies["newPassword"]) {
+    res.redirect('/newpassword');
+    return;
+  }
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
   const templateVars = {
@@ -94,6 +102,10 @@ app.get('/urls/new', (req, res) => {
 
 // GET request for ID/edit page
 app.get('/urls/:id', (req, res) => {
+  if (req.cookies["newPassword"]) {
+    res.redirect('/newpassword');
+    return;
+  }
   const urlList = fs.readFileSync(urlsDatabase);
   const urlParsed = JSON.parse(urlList);
   const userList = fs.readFileSync(usersDatabase);
@@ -177,7 +189,36 @@ app.get('/recovery', (req, res) => {
 })
 
 app.get('/newpassword', (req, res) => {
-  
+  if (!req.session.user_id) {
+    res.status(400).send("You are not logged in.");
+  }
+
+  res.cookie('newPassword', true);
+
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  const templateVars = {
+    user: userParsed[req.session.user_id],
+    newPassword: req.cookies["newPassword"]
+  }
+
+  console.log(templateVars.newPassword);
+  res.render('newpassword', templateVars);
+})
+
+app.get('/dashboard', (req, res) => {
+  if (req.cookies["newPassword"]) {
+    res.redirect('/newpassword');
+    return;
+  }
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  const templateVars = {
+    user: userParsed[req.session.user_id],
+  }
+  res.render('dashboard', templateVars);
 })
 
 //--- GET END ---//
@@ -315,7 +356,6 @@ app.post('/recovery', (req, res) => {
   }
 
   req.session.user_id = user.id;
-  res.cookie('newPassword', true);
   res.redirect('/newpassword');
 });
 
@@ -354,17 +394,17 @@ app.delete('/urls/:id', (req, res) => {
 
 // PUT request to edit longURL
 app.put('/urls/:id', (req, res) => {
-  // read json file and parse
-  const urlList = fs.readFileSync(urlsDatabase);
-  const urlParsed = JSON.parse(urlList);
+    // read json file and parse
+    const urlList = fs.readFileSync(urlsDatabase);
+    const urlParsed = JSON.parse(urlList);
 
   // check for permission
   if (!req.session.user_id) {
-    res.send('You must log in.')
+    res.status(403).send('You must log in.')
     return;
   }
   if (urlParsed[req.params.id].userID !== req.session.user_id) {
-    res.send("Access Denied.");
+    res.status(400).send("Access Denied.");
     return;
   }
 
@@ -382,6 +422,32 @@ app.put('/urls/:id', (req, res) => {
   res.redirect('/urls');
   return;
 });
+
+app.put('/newpassword', (req, res) => {
+  if (!req.session.user_id) {
+    res.status(403).send("You are not logged in.");
+  }
+
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  userParsed[req.session.user_id].password = bcrypt.hashSync(req.body.password, 10);
+
+  console.log(userParsed[req.session.user_id]);
+
+  const newData = JSON.stringify(userParsed, null, 4);
+
+  fs.writeFile('./data/users.json', newData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/users.json`);
+  });
+
+  res.clearCookie('newPassword');
+  res.redirect('/urls');
+  return;
+})
 
 
 app.listen(PORT, () => {
