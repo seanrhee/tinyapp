@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
+const methodOverride = require('method-override');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
@@ -7,7 +8,6 @@ const usersDatabase = './data/users.json';
 const urlsDatabase = './data/urlDatabase.json';
 
 const { getUserByEmail, urlsForUser } = require('./helpers');
-
 
 const app = express();
 const PORT = 8080;
@@ -17,7 +17,7 @@ app.use(cookieSession({
   name: 'session',
   keys: [")J@NcRfUjWnZr4u7"]
 }));
-
+app.use(methodOverride('X-HTTP-Method-Override'));
 
 const generateRandomString = function() {
   let result = '';
