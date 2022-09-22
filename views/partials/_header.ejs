@@ -21,6 +21,7 @@
           <a class="nav-item nav-link" href="/login">Login</a>
           <a class="nav-item nav-link" href="/register">Register</a>
         <% } else { %>
+          <a class="nav-item nav-link" href="/dashboard">Dashboard</a>
           <p>Welcome <%= user.email %>!</p>
           <form action="/logout" method="POST"><button class="btn btn-primary">Logout</button></form>
         <% } %>
