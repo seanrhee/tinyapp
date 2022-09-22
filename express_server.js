@@ -207,10 +207,28 @@ app.get('/newpassword', (req, res) => {
   res.render('newpassword', templateVars);
 })
 
+app.get('/newemail', (req, res) => {
+  if (!req.session.user_id) {
+    res.status(400).send("You are not logged in.");
+  }
+
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  const templateVars = {
+    user: userParsed[req.session.user_id],
+  }
+
+  res.render('newemail', templateVars);
+})
+
 app.get('/dashboard', (req, res) => {
   if (req.cookies["newPassword"]) {
     res.redirect('/newpassword');
     return;
+  }
+  if (!req.session.user_id) {
+    res.status(400).send("You are not logged in.");
   }
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
@@ -433,8 +451,6 @@ app.put('/newpassword', (req, res) => {
 
   userParsed[req.session.user_id].password = bcrypt.hashSync(req.body.password, 10);
 
-  console.log(userParsed[req.session.user_id]);
-
   const newData = JSON.stringify(userParsed, null, 4);
 
   fs.writeFile('./data/users.json', newData, err => {
@@ -445,6 +461,35 @@ app.put('/newpassword', (req, res) => {
   });
 
   res.clearCookie('newPassword');
+  res.redirect('/urls');
+  return;
+})
+
+app.put('/newemail', (req, res) => {  
+  const userList = fs.readFileSync(usersDatabase);
+  const userParsed = JSON.parse(userList);
+
+  if (!req.session.user_id) {
+    res.status(403).send("You are not logged in.");
+  }
+
+    // check if passwords match
+    if (!bcrypt.compareSync(req.body.password, userParsed[req.session.user_id].password)) {
+      res.status(403).send("Wrong password.");
+      return;
+    }
+
+  userParsed[req.session.user_id].email = req.body.email;
+
+  const newData = JSON.stringify(userParsed, null, 4);
+
+  fs.writeFile('./data/users.json', newData, err => {
+    if (err) throw err;
+
+    // print confirm
+    console.log(`Updated ./data/users.json`);
+  });
+
   res.redirect('/urls');
   return;
 })
