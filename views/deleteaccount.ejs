@@ -13,17 +13,13 @@
   <%- include('partials/_header') %>
   <body>
     <div class="d-flex justify-content-md-center">
-      <h3>Dashboard for <%= user.email %></h3>
+      <h3>DELETE ACCOUNT: <%= user.email %></h3>
     </div>
     <div class="d-flex justify-content-md-center">      
-      <h5><a href="/newemail">Change email</a></h5><br>
+      <h5>ARE YOU SURE?</h5>
     </div>
     <div class="d-flex justify-content-md-center">      
-      <h5><a href="/newpassword">Change password</a></h5>
-    </div>
-    <div class="d-flex justify-content-md-center">      
-      <td><form method="GET" action="/deleteaccount"><button class="btn btn-danger">Delete Account</button></form></td>
-    </div>
+      <td><form method="POST" action="/deleteaccount?_method=DELETE"><button class="btn btn-danger">Delete Account</button></form></td>
     </div>
     <!-- Bootstrap JS -->
     <script
