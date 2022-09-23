@@ -19,6 +19,9 @@
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
+        <p class="card-text">
+          Page views: <%= pageView %></a>
+        </p>
       </div>
       <div class="card-footer text-muted"><h3>EDIT</h3>
         <form class="form-inline" action="/urls/<%= id %>?_method=PUT" method="POST">
@@ -33,7 +36,29 @@
             />
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
-        </form></div>
+        </form>
+      </div>
+      <div>
+        <main style="margin: 1em;">
+          <h3>Page Visits</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Visitor ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for (let visit in visits) { %>
+                <tr>
+                  <td><%= visits[visit].timestamp %></td>
+                  <td><%= visits[visit].visitor_id %></td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </main>
+      </div>
       
     </div>
     <!-- Bootstrap JS -->
