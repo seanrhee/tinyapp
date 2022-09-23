@@ -31,10 +31,11 @@ function User(id, email, password, secQuestion, secAnswer) {
 };
 
 // constructor function for new URL
-function newURL(longURL, userID, visits) {
+function newURL(longURL, userID, dateCreated, visits) {
   this.longURL = longURL;
   this.userID = userID;
-  this.visits = visits
+  this.dateCreated = dateCreated;
+  this.visits = visits;
 };
 
 function newVisit(timestamp, visitor_id) {
@@ -99,6 +100,7 @@ app.get('/urls/:id', (req, res) => {
     longURL: urlParsed[req.params.id].longURL,
     user: userParsed[req.session.user_id],
     pageView: Object.keys(urlParsed[req.params.id].visits).length,
+    dateCreated: urlParsed[req.params.id].dateCreated,
     visits: urlParsed[req.params.id].visits
   }
   
@@ -273,7 +275,7 @@ app.post('/urls', (req, res) => {
   const urlParsed = JSON.parse(urlList);
 
   // add id + longURL to object
-  const addURL = new newURL(longURL, req.session.user_id, {});
+  const addURL = new newURL(longURL, req.session.user_id, Date(), {});
   urlParsed[id] = addURL;
 
   // stringify new object and write to file
