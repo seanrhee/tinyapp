@@ -8,7 +8,7 @@ const fs = require('fs');
 const usersDatabase = './data/users.json';
 const urlsDatabase = './data/urlDatabase.json';
 
-const { getUserByEmail, urlsForUser } = require('./helpers');
+const { getUserByEmail, urlsForUser, generateRandomString } = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -20,17 +20,6 @@ app.use(cookieSession({
 }));
 app.use(methodOverride('_method'));
 app.use(cookieParser());
-
-const generateRandomString = function() {
-  let result = '';
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  
-  return result;
-}
 
 // constructor function for new User
 function User(id, email, password, secQuestion, secAnswer) {
@@ -221,7 +210,6 @@ app.get('/newpassword', (req, res) => {
     newPassword: req.cookies["newPassword"]
   }
 
-  console.log(templateVars.newPassword);
   res.render('newpassword', templateVars);
 })
 
@@ -360,8 +348,6 @@ app.post('/register', (req, res) => {
   } else {
     // new User using constructor (password is hashed using bcrypt)
     const newUser = new User(newID, req.body.email, bcrypt.hashSync(req.body.password, 10), req.body.secQuestion, bcrypt.hashSync(req.body.secAnswer, 10));
-
-    console.log(newUser);
   
     // add new user with newID as key to userParsed
     userParsed[newID] = newUser;
@@ -453,11 +439,8 @@ app.delete('/deleteaccount', (req, res) => {
   const userList = fs.readFileSync(usersDatabase);
   const userParsed = JSON.parse(userList);
 
-  console.log(userParsed[req.session.user_id]);
-
   // DELETE URLS from urlDatabase.json
   for (const url in urlParsed) {
-    console.log(urlParsed[url]);
     if (urlParsed[url].userID === userParsed[req.session.user_id].id) {
       delete urlParsed[url];
     }

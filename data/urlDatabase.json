@@ -32,5 +32,20 @@
                 "visitor_id": "orX87U"
             }
         }
+    },
+    "mbsP7q": {
+        "longURL": "http://www.lighthouselabs.ca",
+        "userID": "iqFwBX",
+        "visits": {}
+    },
+    "KkWd6X": {
+        "longURL": "http://www.youtube.com",
+        "userID": "iqFwBX",
+        "visits": {
+            "NCU42e": {
+                "timestamp": "Fri Sep 23 2022 18:14:15 GMT+0000 (Coordinated Universal Time)",
+                "visitor_id": "NCU42e"
+            }
+        }
     }
 }

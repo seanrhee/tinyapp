@@ -29,4 +29,17 @@ function urlsForUser(id, database) {
   return userURLs;
 }
 
-module.exports = { getUserByEmail, urlsForUser };
+// generates random string for IDs
+const generateRandomString = function() {
+  let result = '';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return result;
+}
+
+
+module.exports = { getUserByEmail, urlsForUser, generateRandomString };
