@@ -42,9 +42,15 @@ function User(id, email, password, secQuestion, secAnswer) {
 };
 
 // constructor function for new URL
-function newURL(longURL, userID) {
+function newURL(longURL, userID, visits) {
   this.longURL = longURL;
   this.userID = userID;
+  this.visits = visits
+};
+
+function newVisit(timestamp, visitor_id) {
+  this.timestamp = timestamp;
+  this.visitor_id = visitor_id;
 };
 
 app.use(express.urlencoded({ extended: true }));
@@ -102,7 +108,9 @@ app.get('/urls/:id', (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlParsed[req.params.id].longURL,
-    user: userParsed[req.session.user_id]
+    user: userParsed[req.session.user_id],
+    pageView: Object.keys(urlParsed[req.params.id].visits).length,
+    visits: urlParsed[req.params.id].visits
   }
   
   if (!req.session.user_id) {
@@ -124,6 +132,30 @@ app.get('/u/:id', (req, res) => {
 
   const longURL = urlParsed[req.params.id].longURL;
   if (longURL) {
+    if (!req.cookies[req.params.id]) {
+      res.cookie(req.params.id, 1);
+
+    } else {
+      let viewCount = Number(req.cookies[req.params.id]);
+      viewCount++;
+      
+      res.cookie(req.params.id, viewCount);
+    }
+    const visitorId = generateRandomString()
+    const addVisit = new newVisit(Date(), visitorId);
+
+    urlParsed[req.params.id].visits[visitorId] = addVisit;
+
+      // stringify new object and write to file
+    const newData = JSON.stringify(urlParsed, null, 4);
+    fs.writeFile('./data/urlDatabase.json', newData, err => {
+      if (err) throw err;
+
+    // print confirm
+      console.log(`Updated ./data/urlDatabase.json`);
+    });
+
+
     res.redirect(longURL);
     return;
   } else {
@@ -253,7 +285,7 @@ app.post('/urls', (req, res) => {
   const urlParsed = JSON.parse(urlList);
 
   // add id + longURL to object
-  const addURL = new newURL(longURL, req.session.user_id)
+  const addURL = new newURL(longURL, req.session.user_id, {});
   urlParsed[id] = addURL;
 
   // stringify new object and write to file
@@ -403,6 +435,7 @@ app.delete('/urls/:id', (req, res) => {
     console.log(`Updated ./data/urlDatabase.json`);
   });
 
+  res.clearCookie(req.params.id);
   res.redirect('/urls');
   return;
 });
